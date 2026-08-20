@@ -1,0 +1,31 @@
+# Learn more about configuring your checkout UI extension:
+# https://shopify.dev/docs/api/checkout-ui-extensions/latest/configuration
+
+# The version of APIs your extension will receive. Learn more:
+# https://shopify.dev/docs/api/usage/versioning
+api_version = "2026-07"
+
+[[extensions]]
+name = "complete-payment"
+handle = "complete-payment"
+type = "ui_extension"
+uid = "3a3fdcf5-29c0-5119-3671-06ff5f95846702e0fb4e"
+
+# Controls where in Shopify your extension will be injected,
+# and the file that contains your extension’s source code. Learn more:
+# https://shopify.dev/docs/api/checkout-ui-extensions/latest/extension-targets-overview
+
+[[extensions.targeting]]
+module = "./src/Checkout.jsx"
+target = "purchase.thank-you.block.render"
+
+# Defines settings that will be collected from merchants installing
+# your extension. Learn more:
+# https://shopify.dev/docs/api/checkout-ui-extensions/latest/configuration#settings-definition
+
+[extensions.settings]
+[[extensions.settings.fields]]
+key = "backend_url"
+type = "single_line_text_field"
+name = "URL del backend de pagos"
+description = "URL base del backend de pagos externo (ej. https://payments.example.com)"

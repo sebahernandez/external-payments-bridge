@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Pooled (pgbouncer) connection for the running app.
+  url       = env("DATABASE_URL")
+  // Direct connection for migrations — pgbouncer's transaction pooling
+  // doesn't support the advisory locks Prisma Migrate needs.
+  directUrl = env("DIRECT_URL")
+}
+
+// Offline sessions, one per shop, obtained via Token Exchange and read by
+// @shopify/shopify-app-session-storage-prisma whenever we need to call the
+// Admin API outside of a live admin request (e.g. from a webhook).
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  refreshToken  String?
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+enum ChargeStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  EXPIRED
+  CANCELLED
+  NEEDS_REVIEW
+}
+
+model Charge {
+  id                  String       @id @default(cuid())
+  shop                String
+  shopifyOrderId      String
+  shopifyOrderName    String
+  providerId          String
+  externalReference   String?
+  amount              String
+  currency            String
+  status              ChargeStatus @default(PENDING)
+  paymentInstructions Json?
+  rawProviderPayload  Json?
+  errorMessage        String?
+  paidAt              DateTime?
+  reviewedAt          DateTime?
+  reviewNote          String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@unique([providerId, externalReference])
+  @@index([shop, status])
+  @@index([shopifyOrderId])
+}
+
+model WebhookEvent {
+  id              String    @id @default(cuid())
+  source          String
+  topic           String
+  shop            String?
+  externalEventId String?
+  payload         Json
+  status          String    @default("RECEIVED")
+  error           String?
+  createdAt       DateTime  @default(now())
+  processedAt     DateTime?
+
+  @@unique([source, externalEventId])
+  @@index([shop, topic])
+}
+
+model MerchantPaymentConfig {
+  id            String   @id @default(cuid())
+  shop          String   @unique
+  providerId    String
+  credentials   String
+  webhookSecret String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

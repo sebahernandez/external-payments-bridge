@@ -1,0 +1,38 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "898c50175b7a0c8517035b74e01e85cc"
+name = "external-payment-bridge"
+# Points at our standalone backend (backend/), tunneled separately via
+# `cloudflared tunnel --url http://localhost:3000` — NOT managed by
+# `shopify app dev` (there's no declared [web] process for the CLI to own).
+application_url = "https://watershed-kept-watson-ecology.trycloudflare.com"
+embedded = true
+
+[build]
+# Kept false: the CLI's own dev tunnel is for extension previews only and
+# would otherwise overwrite the URLs above with the wrong host.
+automatically_update_urls_on_dev = false
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  topics = ["orders/create"]
+  uri = "/webhooks"
+
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri = "/webhooks"
+
+[access.admin]
+direct_api_mode = "online"
+embedded_app_direct_api_access = true
+
+[access_scopes]
+# write_orders is required by orderMarkAsPaid; read_orders to verify order
+# state before marking it paid. Learn more at
+# https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_orders,write_orders"
+
+[auth]
+redirect_urls = [ "https://watershed-kept-watson-ecology.trycloudflare.com/auth/callback" ]
